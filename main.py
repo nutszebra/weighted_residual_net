@@ -53,7 +53,7 @@ if __name__ == '__main__':
     lr = args.pop('lr')
     k = args.pop('k')
     N = args.pop('N')
-    n = int((N - 4) / 3)
+    n = int((N - 4) / 6)
     print('generating model')
     model = weighted_residual_net.WeightedResidualNetwork(10, out_channels=(16 * k, 32 * k, 64 * k), N=(n, ) * 3)
     print('Done')
