@@ -207,7 +207,7 @@ class WeightedResidualNetwork(nutszebra_chainer.Model):
         batch, channels, height, width = h.data.shape
         h = F.reshape(F.average_pooling_2d(h, (height, width)), (batch, channels, 1, 1))
         _, in_channel, _, _ = self.linear.conv.W.data.shape
-        h = self.concatenate_zero_pad(h, (batch, in_channel, height, width), h.volatile, type(h.data))
+        h = self.concatenate_zero_pad(h, (batch, in_channel, 1, 1), h.volatile, type(h.data))
         return F.reshape(self.linear(h, train), (batch, self.category_num))
 
     def calc_loss(self, y, t):
