@@ -189,12 +189,25 @@ class WeightedResidualNetwork(nutszebra_chainer.Model):
     def count_parameters(self):
         return int(np.sum([link.count_parameters() for _, link in self.modules]))
 
+    @staticmethod
+    def concatenate_zero_pad(x, h_shape, volatile, h_type):
+        _, x_channel, _, _ = x.data.shape
+        batch, h_channel, h_y, h_x = h_shape
+        if x_channel == h_channel:
+            return x
+        pad = chainer.Variable(np.zeros((batch, h_channel - x_channel, h_y, h_x), dtype=np.float32), volatile=volatile)
+        if h_type is not np.ndarray:
+            pad.to_gpu()
+        return F.concat((x, pad))
+
     def __call__(self, x, train=False):
         h = self.conv1(x, train)
         for i in six.moves.range(len(self.out_channels)):
             h = self['res_block{}'.format(i)](h, train)
         batch, channels, height, width = h.data.shape
         h = F.reshape(F.average_pooling_2d(h, (height, width)), (batch, channels, 1, 1))
+        _, in_channel, _, _ = self.linear.conv.W.data.shape
+        h = self.concatenate_zero_pad(h, (batch, in_channel, height, width), h.volatile, type(h.data))
         return F.reshape(self.linear(h, train), (batch, self.category_num))
 
     def calc_loss(self, y, t):
